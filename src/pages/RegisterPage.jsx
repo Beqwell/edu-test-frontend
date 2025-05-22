@@ -9,6 +9,7 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  // Handle user registration and redirect to login
   const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
@@ -20,8 +21,7 @@ export default function RegisterPage() {
         role,
       });
 
-      // Після реєстрації переходимо до логіну
-      navigate('/');
+      navigate('/', { state: { registered: true } });
     } catch (err) {
       console.error(err);
       setError('Registration failed');
@@ -54,7 +54,6 @@ export default function RegisterPage() {
         </select><br /><br />
 
         <button type="submit">Register</button>
-
         {error && <p style={{ color: 'red' }}>{error}</p>}
       </form>
     </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import axios from '../api/axios';
 
 export default function LoginPage() {
@@ -7,7 +7,12 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
 
+  // Show success message if redirected after registration
+  const successMessage = location.state?.registered ? 'Registration successful. Please log in.' : '';
+
+  // Handle login form submission
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
@@ -19,12 +24,18 @@ export default function LoginPage() {
       });
 
       const token = res.data.token;
-      const role = res.data.role;
+
+      // Decode role from token
+      const payloadBase64 = token.split('.')[1];
+      const decodedPayload = JSON.parse(atob(payloadBase64));
+      const role = decodedPayload.role;
+
+      console.log('Token:', token);
+      console.log('Decoded role:', role);
 
       localStorage.setItem('token', token);
       localStorage.setItem('role', role);
 
-      // Редирект залежно від ролі
       if (role === 'teacher') {
         navigate('/teacher');
       } else {
@@ -32,13 +43,14 @@ export default function LoginPage() {
       }
     } catch (err) {
       console.error(err);
-      setError('Invalid credentials');
+      setError('Invalid username or password');
     }
   };
 
   return (
     <div style={{ maxWidth: 400, margin: 'auto', paddingTop: '3rem' }}>
       <h2>Login</h2>
+      {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}
       <form onSubmit={handleLogin}>
         <input
           type="text"
@@ -57,9 +69,11 @@ export default function LoginPage() {
         /><br /><br />
 
         <button type="submit">Login</button>
-
         {error && <p style={{ color: 'red' }}>{error}</p>}
       </form>
+      <p style={{ marginTop: '1rem' }}>
+        Don't have an account? <Link to="/register">Register</Link>
+      </p>
     </div>
   );
 }
